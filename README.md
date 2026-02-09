@@ -6,9 +6,9 @@ with MLflow + Prefect
 This project implements an **end-to-end pipeline** for periodic retraining of a 
 gradient boosting model on fresh data, with automatic experiment tracking, metric comparison,
 and promotion of better models to production.
-
-Key features:
 ![prefect.jpg](static/prefect.jpg)
+Key features:
+
 - Baseline model training with **Optuna** hyperparameter & feature tuning (optional)
 - Scheduled / triggered retraining on new data
 - **Data drift detection** using **Evidently**
