@@ -1,0 +1,8 @@
+.env
+__pycache__/
+.DS_Store
+data/*
+models/*
+!models/model.ubj.zip
+src/retraining/mlruns/
+src/retraining/mlflow.db
