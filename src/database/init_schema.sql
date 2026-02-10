@@ -21,13 +21,12 @@ CREATE TABLE IF NOT EXISTS train (
 );
 
 CREATE TABLE IF NOT EXISTS test (LIKE train INCLUDING ALL);
--- CREATE TABLE IF NOT EXISTS featured_new_data (LIKE train INCLUDING ALL);
 
 CREATE TABLE IF NOT EXISTS new_data (
     id SERIAL PRIMARY KEY,
     vendor_id INTEGER,
     pickup_datetime TEXT,
-    passenger_count TEXT,
+    passenger_count INTEGER,
     pickup_longitude DOUBLE PRECISION,
     pickup_latitude DOUBLE PRECISION,
     dropoff_longitude DOUBLE PRECISION,

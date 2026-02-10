@@ -1,6 +1,6 @@
 import mlflow.xgboost
 from mlflow.tracking import MlflowClient
-from cicd_pipeline.models.main import mdl
+from models.main import mdl
 from config import EXPERIMENT_NAME, MODEL_NAME
 
 

@@ -4,9 +4,9 @@ from pydantic import BaseModel, Field
 class RawData(BaseModel):
     vendor_id: int
     pickup_datetime: str
-    passenger_count: int = Field(gt=0),
-    pickup_longitude: float = Field(gt=-100),
-    pickup_latitude: float = Field(lt=50),
+    passenger_count: int = Field(gt=0)
+    pickup_longitude: float = Field(gt=-100)
+    pickup_latitude: float = Field(lt=50)
     dropoff_longitude: float
     dropoff_latitude: float
     store_and_fwd_flag: str

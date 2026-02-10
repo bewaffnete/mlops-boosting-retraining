@@ -24,20 +24,20 @@ def ft_degree(lat1, lng1, lat2, lng2):
     return np.degrees(np.arctan2(y, x))
 
 
-def validate(df: pd.DataFrame) -> pd.DataFrame:
+def validate(df: pd.DataFrame) -> tuple[pd.DataFrame, list[int]]:
     valid_rows = []
+    valid_indices = []
     for i, row in df.iterrows():
         try:
             user = ModelData(**row.to_dict())
             valid_rows.append(user)
-        except ValidationError as e:
+            valid_indices.append(i)
+        except ValidationError:
             continue
-    return pd.DataFrame([u.model_dump() for u in valid_rows])
+    return pd.DataFrame([u.model_dump() for u in valid_rows]), valid_indices
 
 
 def transform(df: pd.DataFrame):
-    erase(df)
-
     df = pd.concat([df, pd.get_dummies(df['store_and_fwd_flag'])], axis=1)
     df = pd.concat([df, pd.get_dummies(df['vendor_id'])], axis=1)
 
@@ -73,11 +73,19 @@ def transform(df: pd.DataFrame):
 
     df.rename(columns={1: 'field_1', 2: 'field_2', 'N': 'n', 'Y': 'y'}, inplace=True)
 
-    df = validate(df)
+    id_series = df['id'] if 'id' in df.columns else None
+    if id_series is not None:
+        df = df.drop(columns=['id'])
+
+    df, valid_indices = validate(df)
 
     for index, row in df.iterrows():
         data_dict = row[df.columns].to_dict()
         insert_transaction(data_dict, 'train')
+
+    if id_series is not None and valid_indices:
+        valid_ids = id_series.iloc[valid_indices].tolist()
+        erase(pd.DataFrame({"id": valid_ids}))
 
     return df
 

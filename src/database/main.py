@@ -3,7 +3,7 @@ from config import DB_CONFIG, backend
 import pandas as pd
 from sqlalchemy import create_engine, text
 
-def query_form(data_dict: dict, table_name):
+def query_form(data_dict: dict, table_name='new_data'):
     """
     Form query.
     """
@@ -33,8 +33,7 @@ def get_connection():
         conn = psycopg.connect(**DB_CONFIG)
         return conn
     except psycopg.Error as e:
-        print("Connection error:", e)
-        return None
+        raise RuntimeError(f"Connection error: {e}") from e
 
 
 def insert_transaction(data_dict: dict, table_name: str = 'new_data'):

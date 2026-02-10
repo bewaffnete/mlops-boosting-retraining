@@ -14,7 +14,7 @@ postgres_host = os.getenv('PG_HOST', 'localhost')
 postgres_port = os.getenv('PG_PORT', '5432')
 postgres_db = os.getenv('PG_DB')
 
-backend = f'postgresql+psycopg2://{postgres_user}:{postgres_password}@localhost:{postgres_port}/{postgres_db}'
+backend = f'postgresql+psycopg2://{postgres_user}:{postgres_password}@{postgres_host}:{postgres_port}/{postgres_db}'
 
 DB_CONFIG = {
     "host": os.getenv("PG_HOST", "db"),
