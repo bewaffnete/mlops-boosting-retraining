@@ -1,0 +1,24 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app/src:/app
+
+COPY . /app
+
+RUN pip install --no-cache-dir \
+    pandas \
+    numpy \
+    pydantic \
+    psycopg[binary] \
+    psycopg2-binary \
+    sqlalchemy \
+    python-dotenv \
+    scikit-learn \
+    xgboost \
+    optuna \
+    mlflow \
+    prefect==2.20.18 \
+    evidently

@@ -1,0 +1,100 @@
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ${PG_DB:-mlops}
+      POSTGRES_USER: ${PG_USER:-mlops}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:-mlops}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./src/database/init_schema.sql:/docker-entrypoint-initdb.d/init_schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PG_USER:-mlops} -d ${PG_DB:-mlops}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  consumer:
+    build:
+      context: .
+      dockerfile: Dockerfile.consumer
+    environment:
+      PG_HOST: db
+      PG_PORT: 5432
+      PG_DB: ${PG_DB:-mlops}
+      PG_USER: ${PG_USER:-mlops}
+      PG_PASSWORD: ${PG_PASSWORD:-mlops}
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./data:/app/data:ro
+
+  mlflow:
+    build:
+      context: .
+      dockerfile: Dockerfile.mlflow
+    environment:
+      MLFLOW_SERVER_ALLOWED_HOSTS: "mlflow:5001,localhost:5001,127.0.0.1:5001"
+    ports:
+      - "5001:5001"
+    volumes:
+      - mlflow:/mlflow
+    command: >
+      mlflow server
+      --host 0.0.0.0
+      --port 5001
+      --backend-store-uri sqlite:////mlflow/mlflow.db
+      --default-artifact-root /mlflow/artifacts
+
+  prefect:
+    image: prefecthq/prefect:2-python3.11
+    ports:
+      - "4200:4200"
+    command: >
+      prefect server start
+      --host 0.0.0.0
+      --port 4200
+
+  retraining:
+    build:
+      context: .
+      dockerfile: Dockerfile.retraining
+    environment:
+      PG_HOST: db
+      PG_PORT: 5432
+      PG_DB: ${PG_DB:-mlops}
+      PG_USER: ${PG_USER:-mlops}
+      PG_PASSWORD: ${PG_PASSWORD:-mlops}
+      EXPERIMENT_NAME: ${EXPERIMENT_NAME:-xgb-retrain}
+      MODEL_NAME: ${MODEL_NAME:-xgb-model}
+      MLFLOW_TRACKING_URI: http://mlflow:5001
+      PREFECT_API_URL: http://prefect:4200/api
+    depends_on:
+      db:
+        condition: service_healthy
+      mlflow:
+        condition: service_started
+      prefect:
+        condition: service_started
+    command: ["python", "/app/src/retraining/main.py"]
+
+  bootstrap_mlflow:
+    build:
+      context: .
+      dockerfile: Dockerfile.retraining
+    environment:
+      EXPERIMENT_NAME: ${EXPERIMENT_NAME:-xgb-retrain}
+      MODEL_NAME: ${MODEL_NAME:-xgb-model}
+      MLFLOW_TRACKING_URI: http://mlflow:5001
+      MODEL_PATH: /app/models/model.ubj
+    depends_on:
+      mlflow:
+        condition: service_started
+    command: ["python", "/app/src/retraining/log_first_model.py"]
+
+volumes:
+  pgdata:
+  mlflow:
